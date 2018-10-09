@@ -49,9 +49,18 @@ export const COMPOSE_UPLOAD_CHANGE_REQUEST     = 'COMPOSE_UPLOAD_UPDATE_REQUEST'
 export const COMPOSE_UPLOAD_CHANGE_SUCCESS     = 'COMPOSE_UPLOAD_UPDATE_SUCCESS';
 export const COMPOSE_UPLOAD_CHANGE_FAIL        = 'COMPOSE_UPLOAD_UPDATE_FAIL';
 
+export const HASHTAG_CHANGE = 'HASHTAG_CHANGE';
+
 export function changeCompose(text) {
   return {
     type: COMPOSE_CHANGE,
+    text: text,
+  };
+};
+
+export function changeHashtag(text) {
+  return {
+    type: HASHTAG_CHANGE,
     text: text,
   };
 };
@@ -131,6 +140,54 @@ export function submitCompose() {
       },
     }).then(function (response) {
       dispatch(insertIntoTagHistory(response.data.tags, status));
+      dispatch(submitComposeSuccess({ ...response.data }));
+
+      // To make the app more responsive, immediately get the status into the columns
+
+      const insertIfOnline = (timelineId) => {
+        if (getState().getIn(['timelines', timelineId, 'items', 0]) !== null) {
+          dispatch(updateTimeline(timelineId, { ...response.data }));
+        }
+      };
+
+      insertIfOnline('home');
+
+      if (response.data.in_reply_to_id === null && response.data.visibility === 'public') {
+        insertIfOnline('community');
+        insertIfOnline('public');
+      } else if (response.data.visibility === 'direct') {
+        insertIfOnline('direct');
+      }
+    }).catch(function (error) {
+      dispatch(submitComposeFail(error));
+    });
+  };
+};
+
+export function submitComposeWithHashtag() {
+  return function (dispatch, getState) {
+    const status = getState().getIn(['compose', 'text'], '') + ' ' + getState().getIn(['compose', 'preservedHashtag']);
+    const media  = getState().getIn(['compose', 'media_attachments']);
+
+    if ((!status || !status.length) && media.size === 0) {
+      return;
+    }
+
+    dispatch(submitComposeRequest());
+
+    api(getState).post('/api/v1/statuses', {
+      status,
+      in_reply_to_id: getState().getIn(['compose', 'in_reply_to'], null),
+      media_ids: media.map(item => item.get('id')),
+      sensitive: getState().getIn(['compose', 'sensitive']),
+      spoiler_text: getState().getIn(['compose', 'spoiler_text'], ''),
+      visibility: getState().getIn(['compose', 'privacy']),
+    }, {
+      headers: {
+        'Idempotency-Key': getState().getIn(['compose', 'idempotencyKey']),
+      },
+    }).then(function (response) {
+      dispatch(insertIntoTagHistory(response.data.tags));
       dispatch(submitComposeSuccess({ ...response.data }));
 
       // To make the app more responsive, immediately get the status into the columns

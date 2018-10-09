@@ -53,6 +53,9 @@ class ComposeForm extends ImmutablePureComponent {
     onPickEmoji: PropTypes.func.isRequired,
     showSearch: PropTypes.bool,
     anyMedia: PropTypes.bool,
+    preservedHashtag: PropTypes.string,
+    onChangeHashtag: PropTypes.func.isRequired,
+    onSubmitWithHashtag: PropTypes.func.isRequired,
   };
 
   static defaultProps = {
@@ -63,12 +66,37 @@ class ComposeForm extends ImmutablePureComponent {
     this.props.onChange(e.target.value);
   }
 
+  handleChangeHashtag = (e) => {
+    this.props.onChangeHashtag(e.target.value);
+  }
+
   handleKeyDown = (e) => {
     if (e.keyCode === 13 && (e.ctrlKey || e.metaKey)) {
       this.handleSubmit();
+    } 
+    if (e.keyCode === 13 && e.shiftKey) {
+      this.handleSubmitWithHashtag();
     }
   }
 
+  handleSubmitWithHashtag = () => {
+    if (this.props.text !== this.autosuggestTextarea.textarea.value) {
+      // Something changed the text inside the textarea (e.g. browser extensions like Grammarly)
+      // Update the state to match the current text
+      this.props.onChange(this.autosuggestTextarea.textarea.value);
+    }
+
+    // Submit disabled:
+    const { is_submitting, is_uploading, anyMedia } = this.props;
+    const fulltext = [this.props.spoiler_text, countableText(this.props.text)].join('');
+
+    if (is_submitting || is_uploading || length(fulltext) > 500 || (fulltext.length !== 0 && fulltext.trim().length === 0 && !anyMedia)) {
+      return;
+    }
+
+    this.props.onSubmitWithHashtag();
+  }
+  
   handleSubmit = () => {
     if (this.props.text !== this.autosuggestTextarea.textarea.value) {
       // Something changed the text inside the textarea (e.g. browser extensions like Grammarly)
@@ -212,6 +240,9 @@ class ComposeForm extends ImmutablePureComponent {
         </div>
 
         <div className='compose-form__publish'>
+          <div className='compose-form__hashtag-preserver'>
+            <input placeholder="#hashtag" class='hashtag-preserver' value={this.props.preservedHashtag} onChange={this.handleChangeHashtag}></input>
+          </div>
           <div className='compose-form__publish-button-wrapper'><Button text={publishText} onClick={this.handleSubmit} disabled={disabledButton} block /></div>
         </div>
       </div>

@@ -33,7 +33,7 @@ module Mastodon
     end
 
     def repository
-      'tootsuite/mastodon'
+      'chao7150/animedon'
     end
 
     def source_base_url
