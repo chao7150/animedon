@@ -5,7 +5,7 @@ namespace :repo do
   task :authors do
     file = File.open('AUTHORS.md', 'w')
     file << <<~HEADER
-      Mastodon is available on [GitHub](https://github.com/tootsuite/mastodon)
+      Mastodon is available on [GitHub](https://github.com/chao7150/animedon)
       and provided thanks to the work of the following contributors:
 
     HEADER
