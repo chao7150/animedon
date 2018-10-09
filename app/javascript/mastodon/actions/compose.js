@@ -187,7 +187,7 @@ export function submitComposeWithHashtag() {
         'Idempotency-Key': getState().getIn(['compose', 'idempotencyKey']),
       },
     }).then(function (response) {
-      dispatch(insertIntoTagHistory(response.data.tags));
+      // dispatch(insertIntoTagHistory(response.data.tags));
       dispatch(submitComposeSuccess({ ...response.data }));
 
       // To make the app more responsive, immediately get the status into the columns
