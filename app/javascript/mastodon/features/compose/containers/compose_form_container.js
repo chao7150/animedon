@@ -3,7 +3,9 @@ import ComposeForm from '../components/compose_form';
 import { uploadCompose } from '../../../actions/compose';
 import {
   changeCompose,
+  changeHashtag,
   submitCompose,
+  submitComposeWithHashtag,
   clearComposeSuggestions,
   fetchComposeSuggestions,
   selectComposeSuggestion,
@@ -33,10 +35,18 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(changeCompose(text));
   },
 
+  onChangeHashtag (text) {
+    dispatch(changeHashtag(text));
+  },
+
   onSubmit () {
     dispatch(submitCompose());
   },
 
+  onSubmitWithHashtag () {
+    dispatch(submitComposeWithHashtag());
+  },
+  
   onClearSuggestions () {
     dispatch(clearComposeSuggestions());
   },
